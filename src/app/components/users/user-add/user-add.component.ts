@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { UsersService } from '../../../services/users.service';
 import { Users } from '../../../models/user';
-import { ActivatedRoute, Router, RouterLinkActive } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-user-add',
@@ -23,7 +23,7 @@ export class UserAddComponent implements OnInit {
   userService = inject(UsersService);
   router = inject(Router);
   route = inject(ActivatedRoute);
-  editUserId!: string;
+  editUserId = signal<string | null>(null);
 
   userForm: FormGroup = this.formBuilder.group({
     name: ['', Validators.required],
@@ -34,9 +34,10 @@ export class UserAddComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.editUserId = this.route.snapshot.params['id'];
-    if (this.editUserId) {
-      this.userService.getUser(this.editUserId).subscribe((res) => {
+    const userId = this.route.snapshot.params['id'];
+    if (userId) {
+      this.editUserId.set(userId);
+      this.userService.getUser(userId).subscribe((res) => {
         this.userForm.patchValue(res);
       });
     }
@@ -59,9 +60,16 @@ export class UserAddComponent implements OnInit {
       return;
     }
     const user: Users = this.userForm.value;
-    this.userService.updateUser(this.editUserId, user).subscribe((res) => {
-      console.log('Updated Successfully');
-      this.router.navigateByUrl('/');
-    });
+    const editUserId = this.editUserId();
+    if (editUserId) {
+      this.userService.updateUser(editUserId, user).subscribe((res) => {
+        console.log('Updated Successfully');
+        this.router.navigateByUrl('/');
+      });
+    }
+  }
+
+  navigateToBack() {
+    this.router.navigateByUrl('/');
   }
 }
