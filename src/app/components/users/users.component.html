@@ -2,9 +2,14 @@
     <button mat-raised-button color="primary" routerLink="/users/add-users">Add User</button>
 </div>
 
+<mat-form-field>
+    <mat-label>Filter</mat-label>
+    <input matInput (input)="applyFilter($event)" placeholder="Name">
+</mat-form-field>
+
 @if (!errorMessage()) {
 <div class="table-container mat-elevation-z8">
-    <table mat-table [dataSource]="users()" class="full-width-table">
+    <table mat-table [dataSource]="filteredUsers()" class="full-width-table">
         <!-- Name Column -->
         <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef> Name </th>
